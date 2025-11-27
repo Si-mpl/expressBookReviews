@@ -28,13 +28,13 @@ regd_users.post("/login", (req,res) => {
   if(username && password){
     if(authenticatedUser){
         let accessToken = jwt.sign({
-            token: password
+            token: password,
+            "username": username
         }, 'access', {expiresIn: 60* 60})
 
         req.session.authentication = {
             accessToken, username
         }
-        res.send("User logged in")
         return res.status(200).send("User logged in!")
     } else {
         return res.status(208).send({message: "invalid username/password"})
@@ -49,22 +49,34 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     let isbn = req.params.isbn;
     if(books[isbn]){
         let reviews = books[isbn].reviews
-        let foundReview = reviews.filter((user) => user.username === req.user)
-        if(foundReview.length > 0){
-            foundReview.review = req.query.review
-            res.send("Review Updated")
+        let user = req.user.username
+        let foundReview = reviews[user]
+        if(foundReview){
+            foundReview = req.query.review
+            res.send(`Review Updated on ISBN ${isbn} to ${req.query.review}`)
         } else {
-            reviews.push({
-                "username": req.user,
-                "review": req.query.review
-            })
-            res.send("Review Created")
+            reviews[user] = req.query.review
+            res.send(`Review Created  on ISBN ${isbn} to ${req.query.review}`)
         }
         return res.status(200)
     } else {
       res.send("Book not found");
     }
+});
 
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    let isbn = req.params.isbn;
+    if(books[isbn]){
+        let reviews = books[isbn].reviews
+        let user = req.user.username
+        let foundReview = reviews[user]
+        if(foundReview){
+            delete foundReview
+            return res.send(`Review on ISBN ${isbn} deleted.`)
+        }
+         return res.send("Review not found")
+    }
+    return res.status(404).send("Invalid ISBN")
 });
 
 module.exports.authenticated = regd_users;

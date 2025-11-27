@@ -15,7 +15,7 @@ public_users.post("/register", (req,res) => {
             "username": username,
             "password": password
         })
-        res.send("Account registered!")
+        res.status(200).send("Account registered!")
     } else {
       res.send("Please insert both username and password.")
     }
@@ -57,7 +57,7 @@ public_users.get('/title/:title',function (req, res) {
 public_users.get('/review/:isbn',function (req, res) {
     let isbn = req.params.isbn;
     if(books[isbn]){
-      res.send(JSON.stringify(books[isbn], "reviews", 4));
+      res.send(JSON.stringify(books[isbn], ["reviews"], 4));
     } else {
       res.send("Book not found");
     }
