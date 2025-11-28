@@ -25,20 +25,36 @@ public_users.post("/register", (req,res) => {
   
 });
 
+let bookPromise = new Promise((resolve, reject) => {
+    resolve(JSON.stringify(books, null, 4))
+})
+
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
-  res.send(JSON.stringify(books, null, 4));
+    bookPromise.then((success) => {
+        return res.status(200).send(success);
+    })
 });
+
+const checkISBN = isbn => {
+    return new Promise((res, rej) => {
+        if(books[isbn]){
+            res(JSON.stringify(books[isbn], null, 4))
+        } else {
+            rej(`Book with ISBN ${isbn} not found.`)
+        }
+    })
+}
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
   //Write your code here
   let isbn = req.params.isbn;
-  if(books[isbn]){
-    res.send(JSON.stringify(books[isbn], null, 4));
-  } else {
-    res.send("Book not found");
-  }
+  checkISBN.then((success) => {
+    res.status(200).send(success)
+  }).catch((fail) => {
+    res.status(404).send(fail)
+  })
  });
   
 // Get book details based on author
